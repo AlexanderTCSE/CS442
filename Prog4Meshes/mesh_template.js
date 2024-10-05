@@ -106,8 +106,40 @@ class Mesh {
      * @param {string} text
      */
     static from_obj_text( gl, program, text ) {
-        // your code here
-        return new Mesh( /*your arguments here*/ );
+        let vertices=[];
+        let indices=[];
+
+        let vertexPostitions=[];
+        let faceIndices=[];
+
+        let lines = text.split(/\r?\n/);
+        lines.forEach((line) => {
+            line=line.trim();
+            if(line.startsWith("v ")){
+                let parts=line.split(/(\s+)/);
+                let x = parseFloat(parts[1]);
+                let y = parseFloat(parts[2]);
+                let z = parseFloat(parts[3]);
+                vertexPostitions.push(x,y,z);
+            }else if(line.startsWith("f ")) {
+                let parts=line.split(/(\s+)/).slice(1);
+                let vertexIndices=parts.map(p => parseInt(p.split('/')[0],10)-1);
+                faceIndices.push(...vertexIndices);
+            }
+        });
+
+        for (let i = 0; i < faceIndices.length; i++) {
+            let vertexIndex = faceIndices[i];
+            vertices.push(
+                vertexPositions[vertexIndex * 3],
+                vertexPositions[vertexIndex * 3 + 1],
+                vertexPositions[vertexIndex * 3 + 2],
+                1.0, 1.0, 1.0, 1.0
+            );
+            indices.push(i);
+        }
+    
+        return new Mesh(gl, program, vertices, indices);
     }
 
     /**
