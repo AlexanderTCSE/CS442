@@ -21,6 +21,35 @@ function create_and_load_vertex_buffer(gl, data, usage) {
     return buf_id;
 }
 
+/** 
+ * Creates a new elements buffer and loads it full of the given data.
+ * Preserves bound buffer.
+ * 
+ * @param {WebGLRenderingContext} gl  
+ * @param {number[]} data
+ * @param {number} usage
+ * 
+ * @returns {WebGLBuffer}
+ */
+function create_and_load_elements_buffer(gl, data, usage) {
+    // Save the currently bound element array buffer
+    let current_element_buf = gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING);
+
+    // Create a new buffer
+    let buf_id = gl.createBuffer();
+    
+    // Bind the new buffer as the ELEMENT_ARRAY_BUFFER
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buf_id);
+    
+    // Load the data into the buffer
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), usage);
+    
+    // Restore the previously bound buffer
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, current_element_buf);
+
+    return buf_id; // Return the created buffer ID
+}
+
 /**
  * 
  * @param {WebGLRenderingContext} gl

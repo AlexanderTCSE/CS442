@@ -109,7 +109,7 @@ class Mesh {
         let vertices=[];
         let indices=[];
 
-        let vertexPostitions=[];
+        let vertexPositions=[];
         let faceIndices=[];
 
         let lines = text.split(/\r?\n/);
@@ -120,7 +120,7 @@ class Mesh {
                 let x = parseFloat(parts[1]);
                 let y = parseFloat(parts[2]);
                 let z = parseFloat(parts[3]);
-                vertexPostitions.push(x,y,z);
+                vertexPositions.push(x,y,z);
             }else if(line.startsWith("f ")) {
                 let parts=line.split(/(\s+)/).slice(1);
                 let vertexIndices=parts.map(p => parseInt(p.split('/')[0],10)-1);

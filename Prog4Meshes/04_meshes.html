@@ -16,21 +16,8 @@
         
         <script>
             let canvas = document.getElementById( 'the-canvas' );
-            
-            /** @type {WebGLRenderingContext} */
             let gl = canvas.getContext( 'webgl2' );
 
-            let verts = [ 
-				//triangle 1 (XYZ-RGB-A)
-                -0.5, -0.25, 0.0, 1.0, 0.0, 0.0, 1.0,
-                0, 0.6, 0.0, 0.0, 1.0, 0.0, 1.0,
-                0.5, -0.25, 0.0, 0.0, 0.0, 1.0, 1.0
-				//triangle 2 (XYZ-RYB-A)
-				//0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 1.0,		//T2 red corner, bot right
-                //0.5, 0.5, 0.0, 1.0, 1.0, 0.0, 1.0,		//T2 yellow corner, top right
-                //-0.5, 0.5, 0.0, 0.0, 0.0, 1.0, 1.0		//T2 blue corner, top left
-            ];
-			
 			const XY_ROT_SPEED=0.25;
 			const XZ_ROT_SPEED=0.5;
 			const YZ_ROT_SPEED=0.05;
@@ -38,7 +25,6 @@
 			let xy_amnt=0.0;
 			let xz_amnt=0.0;
 			let yz_amnt=0.0;
-			
 			let last_update=performance.now();
 
 			let modelxy=Mat4.rotation_xy(0.125);
@@ -46,11 +32,7 @@
             let modelyz=Mat4.rotation_yz(0.125);
             let model=Mat4;
 
-            let vertex_buffer = gl.createBuffer();
-            gl.bindBuffer( gl.ARRAY_BUFFER, vertex_buffer );
-            gl.bufferData( gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW );
-            gl.bindBuffer( gl.ARRAY_BUFFER, null );
-
+            let vertex_buffer;
             
             let vertex_source = 
             `   #version 300 es
@@ -95,49 +77,46 @@
             gl.linkProgram( shader_program );
 
             gl.useProgram( shader_program );
-            
-            let atr_coord = gl.getAttribLocation( shader_program, "coordinates" );
-			let atr_color = gl.getAttribLocation( shader_program, "color" );
-            
-            gl.bindBuffer( gl.ARRAY_BUFFER, vertex_buffer );
-            gl.vertexAttribPointer( atr_coord, 3, gl.FLOAT, false, 7*Float32Array.BYTES_PER_ELEMENT, 0 );
-			gl.vertexAttribPointer( atr_color, 4, gl.FLOAT, false, 7*Float32Array.BYTES_PER_ELEMENT, 3*Float32Array.BYTES_PER_ELEMENT );
-            gl.enableVertexAttribArray( atr_coord );
-			gl.enableVertexAttribArray( atr_color );
 
             gl.clearColor( 0.9, 0.9, 1.0, 1 );
             gl.enable( gl.DEPTH_TEST );
             gl.clear( gl.COLOR_BUFFER_BIT );
+
+            Mesh.from_obj_file(gl,'diamond.obj',shader_program,(loaded_mesh) => {
+                vertex_buffer = loaded_mesh;
+                console.log('Mesh loaded:',vertex_buffer);
+                requestAnimationFrame(render);
+            });
             
 			function set_uniform_matrix4(gl,program,name,data){
 				const loc=gl.getUniformLocation(program,name);
 				gl.uniformMatrix4fv(loc,true,data);
 			}
 			
-            // gl.viewport( 0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight );
+            gl.viewport( 0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight );
 			function render(now){
 				requestAnimationFrame(render);
 				let time_delta=(now-last_update)/1000;
 				last_update=performance.now();
 				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-				xy_amnt += XY_ROT_SPEED * time_delta;
-				xy_amnt %= 1.0;
-				modelxy=Mat4.rotation_xy(xy_amnt);
+                if(vertex_buffer){
+                    xy_amnt += XY_ROT_SPEED * time_delta;
+                    xy_amnt %= 1.0;
+                    modelxy=Mat4.rotation_xy(xy_amnt);
 
-                xz_amnt += XZ_ROT_SPEED * time_delta;
-                xz_amnt %= 1.0;
-                modelxz=Mat4.rotation_xz(xz_amnt);
+                    xz_amnt += XZ_ROT_SPEED * time_delta;
+                    xz_amnt %= 1.0;
+                    modelxz=Mat4.rotation_xz(xz_amnt);
 
-                yz_amnt += YZ_ROT_SPEED * time_delta;
-                yz_amnt %= 1.0;
-                modelyz=Mat4.rotation_yz(yz_amnt);
+                    yz_amnt += YZ_ROT_SPEED * time_delta;
+                    yz_amnt %= 1.0;
+                    modelyz=Mat4.rotation_yz(yz_amnt);
 
-                model=modelxy.mul(modelxz).mul(modelyz);
-				set_uniform_matrix4(gl,shader_program,"modelview",model.data);
-                //console.log(model.data);
-				gl.bindBuffer(gl.ARRAY_BUFFER,vertex_buffer);
-				gl.drawArrays( gl.TRIANGLES, 0, 3 );
+                    model=modelxy.mul(modelxz).mul(modelyz);
+                    set_uniform_matrix4(gl,shader_program,"modelview",model.data);
+                    vertex_buffer.render(gl);
+                }
 			}
 			requestAnimationFrame(render);
             //gl.deleteBuffer( vertex_buffer );
