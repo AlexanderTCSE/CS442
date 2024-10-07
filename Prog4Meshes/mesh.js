@@ -145,10 +145,11 @@ class Mesh {
     /**
      * Asynchronously load the obj file as a mesh.
      * @param {WebGLRenderingContext} gl
-     * @param {string} file_name 
+     * @param {string} file_name
      * @param {WebGLProgram} program
      * @param {function} f the function to call and give mesh to when finished.
      */
+    
     static from_obj_file( gl, file_name, program, f ) {
         let request = new XMLHttpRequest();
         
