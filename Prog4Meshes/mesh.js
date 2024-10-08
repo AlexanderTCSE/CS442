@@ -117,12 +117,14 @@ class Mesh {
             line=line.trim();
             if(line.startsWith("v ")){
                 let parts=line.split(/(\s+)/);
-                let x = parseFloat(parts[1]);
-                let y = parseFloat(parts[2]);
-                let z = parseFloat(parts[3]);
+                console.log(parts);
+                let x = parseFloat(parts[2]);
+                let y = parseFloat(parts[4]);
+                let z = parseFloat(parts[6]);
                 vertexPositions.push(x,y,z);
             }else if(line.startsWith("f ")) {
-                let parts=line.split(/(\s+)/).slice(1);
+                let parts=line.split(/(\s+)/);
+                console.log(parts);
                 let vertexIndices=parts.map(p => parseInt(p.split('/')[0],10)-1);
                 faceIndices.push(...vertexIndices);
             }

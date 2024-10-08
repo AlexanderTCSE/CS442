@@ -32,7 +32,7 @@
             let modelyz=Mat4.rotation_yz(0.125);
             let model=Mat4;
 
-            let vertex_buffer;
+            let vertex_buffer=null;
             
             let vertex_source = 
             `   #version 300 es
@@ -82,10 +82,9 @@
             gl.enable( gl.DEPTH_TEST );
             gl.clear( gl.COLOR_BUFFER_BIT );
 
-            Mesh.from_obj_file(gl,'diamond.obj',shader_program,(loaded_mesh) => {
+            Mesh.from_obj_file(gl,'diamond.obj',shader_program,function(loaded_mesh){
                 vertex_buffer = loaded_mesh;
                 console.log('Mesh loaded:',vertex_buffer);
-                requestAnimationFrame(render);
             });
             
 			function set_uniform_matrix4(gl,program,name,data){
