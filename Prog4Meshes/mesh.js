@@ -109,11 +109,8 @@ class Mesh {
         let vertices=[];
         let indices=[];
 
-        let vertexPositions=[];
-        let faceIndices=[];
-
         let lines = text.split(/\r?\n/);
-        lines.forEach((line) => {
+        lines.forEach(line => {
             line=line.trim();
             if(line.startsWith("v ")){
                 let parts=line.split(/(\s+)/);
@@ -121,26 +118,16 @@ class Mesh {
                 let x = parseFloat(parts[2]);
                 let y = parseFloat(parts[4]);
                 let z = parseFloat(parts[6]);
-                vertexPositions.push(x,y,z);
+                vertices.push(x,y,z,.3,.6,.9,1);
             }else if(line.startsWith("f ")) {
                 let parts=line.split(/(\s+)/);
-                console.log(parts);
-                let vertexIndices=parts.map(p => parseInt(p.split('/')[0],10)-1);
-                faceIndices.push(...vertexIndices);
+                let index1 = parseInt(parts[2])-1;
+                let index2 = parseInt(parts[4])-1;
+                let index3 = parseInt(parts[6])-1;
+                indices.push(index1,index2,index3);
             }
         });
 
-        for (let i = 0; i < faceIndices.length; i++) {
-            let vertexIndex = faceIndices[i];
-            vertices.push(
-                vertexPositions[vertexIndex * 3],
-                vertexPositions[vertexIndex * 3 + 1],
-                vertexPositions[vertexIndex * 3 + 2],
-                1.0, 1.0, 1.0, 1.0
-            );
-            indices.push(i);
-        }
-    
         return new Mesh(gl, program, vertices, indices);
     }
 
