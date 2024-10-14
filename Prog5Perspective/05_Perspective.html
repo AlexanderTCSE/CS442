@@ -18,9 +18,9 @@
             let canvas = document.getElementById( 'the-canvas' );
             let gl = canvas.getContext( 'webgl2' );
 
-			const XY_ROT_SPEED=0.25;
-			const XZ_ROT_SPEED=0.25;
-			const YZ_ROT_SPEED=0.25;
+			const XY_ROT_SPEED=0.125;
+			const XZ_ROT_SPEED=0.125;
+			const YZ_ROT_SPEED=0.125;
 			
 			let xy_amnt=0.0;
 			let xz_amnt=0.0;
@@ -59,11 +59,13 @@
             `   #version 300 es
                 precision mediump float;
 
-				in vec4 fragColor;
+                in vec4 v_color;
+
                 out vec4 f_color;
 
                 void main( void ) {
-                    f_color = fragColor;
+                    /* we can test depth values with this.*/
+                    f_color = vec4(vec3(gl_FragCoord.z), 1.0); 
                 }
             `;
 
@@ -115,7 +117,7 @@
                     let modelScale=Mat4.scale(0.25,0.25,0.25);
                     let modelTrans=Mat4.translation(0,-1,0);
 
-                    model=modelScale.mul(modelTrans).mul(modelxz);
+                    model=modelxz;
                     set_uniform_matrix4(gl,shader_program,"modelview",model.data);
                     vertex_buffer.render(gl);
                 }

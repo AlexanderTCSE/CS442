@@ -1,18 +1,22 @@
-# Cube mesh
 # Vertices
-v -0.5 -0.5  0.5  # Vertex 1
-v  0.5 -0.5  0.5  # Vertex 2
-v  0.5  0.5  0.5  # Vertex 3
-v -0.5  0.5  0.5  # Vertex 4
-v -0.5 -0.5 -0.5  # Vertex 5
-v  0.5 -0.5 -0.5  # Vertex 6
-v  0.5  0.5 -0.5  # Vertex 7
-v -0.5  0.5 -0.5  # Vertex 8
+v -0.5 -0.5 -0.5
+v -0.5  0.5 -0.5
+v  0.5  0.5 -0.5
+v  0.5 -0.5 -0.5
+v -0.5 -0.5  0.5
+v -0.5  0.5  0.5
+v  0.5  0.5  0.5
+v  0.5 -0.5  0.5
 
-# Faces (defined by vertex indices)
-f 1 2 3 4  # Front face
-f 5 6 7 8  # Back face
-f 1 5 8 4  # Left face
-f 2 6 7 3  # Right face
-f 4 3 7 8  # Top face
-f 1 2 6 5  # Bottom face
+f 3 7 8
+f 3 8 4
+f 1 5 6
+f 1 6 2
+f 7 3 2
+f 7 2 6
+f 4 8 5
+f 4 5 1
+f 8 7 6
+f 8 6 5
+f 3 4 1
+f 3 1 2
