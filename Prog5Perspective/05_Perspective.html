@@ -27,9 +27,9 @@
 			let yz_amnt=0.0;
 			let last_update=performance.now();
 
-			let modelxy=Mat4.rotation_xy(0.125);
-            let modelxz=Mat4.rotation_xz(0.125);
-            let modelyz=Mat4.rotation_yz(0.125);
+			let modelxy=Mat4.rotation_xy(XY_ROT_SPEED);
+            let modelxz=Mat4.rotation_xz(XZ_ROT_SPEED);
+            let modelyz=Mat4.rotation_yz(YZ_ROT_SPEED);
             let model=Mat4;
 
             let vertex_buffer;
@@ -65,7 +65,7 @@
 
                 void main( void ) {
                     /* we can test depth values with this.*/
-                    f_color = vec4(vec3(gl_FragCoord.z), 1.0); 
+                    f_color = vec4(vec3(1.0-gl_FragCoord.z), 1.0); 
                 }
             `;
 
@@ -95,6 +95,15 @@
 			}
 			
             gl.viewport( 0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight );
+
+            function perspective(fov_y, aspect, near, far){
+                let top = Math.tan(fov_y/2)*near;
+                let bottom = -top;
+                let right = top * aspect;
+                let left = -right;
+                return Mat4.frustum(left,right,bottom,top,near,far);
+            }
+
 			function render(now){
 				requestAnimationFrame(render);
 				let time_delta=(now-last_update)/1000;
@@ -102,23 +111,40 @@
 				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                 if(vertex_buffer){
+
+                    //rotate model about the xy plane
                     xy_amnt += XY_ROT_SPEED * time_delta;
                     xy_amnt %= 1.0;
                     modelxy=Mat4.rotation_xy(xy_amnt);
 
+                    //rotate model about the xz plane
                     xz_amnt += XZ_ROT_SPEED * time_delta;
                     xz_amnt %= 1.0;
                     modelxz=Mat4.rotation_xz(xz_amnt);
 
+                    //rotate model about the yz plane
                     yz_amnt += YZ_ROT_SPEED * time_delta;
                     yz_amnt %= 1.0;
                     modelyz=Mat4.rotation_yz(yz_amnt);
 
-                    let modelScale=Mat4.scale(0.25,0.25,0.25);
-                    let modelTrans=Mat4.translation(0,-1,0);
+                    //scalar and translation matrices
+                    let modelScale=Mat4.scale(0.5,0.5,0.5);
+                    let modelTrans=Mat4.translation(0,0,1);
 
-                    model=modelxz;
+                    //perspective shenaniganery
+                    let fov_y = 0.25 * Math.PI;
+                    let aspect_ratio = canvas.width/canvas.height;
+                    let near_plane = 0.1;
+                    let far_plane = 10.0;
+                    let projMatrix = perspective(fov_y, aspect_ratio, near_plane, far_plane);
+
+                    //the final model we actually render
+                    model=projMatrix.mul(modelTrans).mul(modelxz).mul(modelScale);
+
+                    //pass modelview to shader
                     set_uniform_matrix4(gl,shader_program,"modelview",model.data);
+
+                    //Render The Cube
                     vertex_buffer.render(gl);
                 }
 			}

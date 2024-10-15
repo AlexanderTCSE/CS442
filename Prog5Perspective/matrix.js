@@ -26,6 +26,41 @@ class Mat4 {
         return new Mat4();
     }
 
+    static frustum( left, right, bottom, top, near, far ) { 
+        // these scalars will scale x,y values to the near plane
+        let scale_x = 2 * near / ( right - left );
+        let scale_y = 2 * near / ( top - bottom );
+
+        // shift the eye depending on the right/left and top/bottom planes.
+        // only really used for VR (left eye and right eye shifted differently).  
+        let t_x = ( right + left ) / ( right - left );
+        let t_y = ( top + bottom ) / ( top - bottom );
+
+        // map z into the range [ -1, 1 ] linearly
+        const linear_c2 = 1 / ( far - near );
+        const linear_c1 = near / ( far - near );
+        // remember that the w coordinate will always be 1 before being fed to the vertex shader.
+        // therefore, anything we put in row 3, col 4 of the matrix will be added to the z.
+
+        // map z into the range [ -1, 1], but with a non-linear ramp
+        // see: https://learnopengl.com/Advanced-OpenGL/Depth-testing and
+        // https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix and
+        // http://learnwebgl.brown37.net/08_projections/projections_perspective.html
+        // for more info. (note, I'm using left-handed coordinates. Some sources use right-handed).
+        const nonlin_c2 = (far + near) / (far - near);
+        const nonlin_c1 = 2 * far * near / (far - near);
+
+        let c1 = nonlin_c1;
+        let c2 = nonlin_c2;
+
+        return new Mat4( [
+            scale_x,    0,          t_x, 0,
+            0,          scale_y,    t_y, 0,
+            0,          0,          c2, -c1,
+            0,          0,          1, 0, 
+        ] );
+    }
+
     toString() {
         var str_vals = this.data.map( function( val ) { return "" + val } )
         var str = 
@@ -259,4 +294,6 @@ class Mat4 {
 		
 		return pieces.join( ' ' );
 	}
+
+
 }
