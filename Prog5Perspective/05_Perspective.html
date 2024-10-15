@@ -32,7 +32,7 @@
             let modelyz=Mat4.rotation_yz(YZ_ROT_SPEED);
             let model=Mat4;
 
-            let vertex_buffer;
+            let meshToLoad;
             
             let vertex_source = 
             `   #version 300 es
@@ -85,8 +85,8 @@
             gl.clear( gl.COLOR_BUFFER_BIT );
 
             Mesh.from_obj_file(gl,'cube.obj',shader_program,function(loaded_mesh){
-                vertex_buffer = loaded_mesh;
-                console.log('Mesh loaded:',vertex_buffer);
+                meshToLoad = loaded_mesh;
+                console.log('Mesh loaded:',meshToLoad);
             });
             
 			function set_uniform_matrix4(gl,program,name,data){
@@ -96,8 +96,8 @@
 			
             gl.viewport( 0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight );
 
-            function perspective(fov_y, aspect, near, far){
-                let top = Math.tan(fov_y/2)*near;
+            function perspective(fov_x, aspect, near, far){
+                let top = Math.tan(fov_x/2)*near;
                 let bottom = -top;
                 let right = top * aspect;
                 let left = -right;
@@ -110,7 +110,7 @@
 				last_update=performance.now();
 				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-                if(vertex_buffer){
+                if(meshToLoad){
 
                     //rotate model about the xy plane
                     xy_amnt += XY_ROT_SPEED * time_delta;
@@ -128,28 +128,33 @@
                     modelyz=Mat4.rotation_yz(yz_amnt);
 
                     //scalar and translation matrices
-                    let modelScale=Mat4.scale(0.5,0.5,0.5);
+                    let modelScale=Mat4.scale(0.75,0.75,0.75);
                     let modelTrans=Mat4.translation(0,0,1);
 
                     //perspective shenaniganery
-                    let fov_y = 0.25 * 2 * Math.PI;
+                    let fov_x = 0.25 * 2 * Math.PI;
                     let aspect_ratio = canvas.width/canvas.height;
                     let near_plane = 0.25;
                     let far_plane = 3.0;
-                    let projMatrix = perspective(fov_y, aspect_ratio, near_plane, far_plane);
+                    let projMatrix = perspective(fov_x, aspect_ratio, near_plane, far_plane);
 
                     //the final model we actually render
-                    model=projMatrix.mul(modelTrans).mul(modelxz).mul(modelScale);
+                    model=projMatrix
+                        .mul(modelTrans)    //translation matrix
+                        //.mul(modelxy)       //xy rotation
+                        //.mul(modelyz)       //yz rotation
+                        .mul(modelxz)       //xz rotation
+                        .mul(modelScale);   //scalar matrix
 
                     //pass modelview to shader
                     set_uniform_matrix4(gl,shader_program,"modelview",model.data);
 
                     //Render The Cube
-                    vertex_buffer.render(gl);
+                    meshToLoad.render(gl);
                 }
 			}
 			requestAnimationFrame(render);
-            //gl.deleteBuffer( vertex_buffer );
+            //gl.deleteBuffer( meshToLoad );
         </script>
     </body>
 </html>
