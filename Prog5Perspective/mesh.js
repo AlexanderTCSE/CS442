@@ -76,7 +76,7 @@ class Mesh {
     render( gl ) {
         gl.cullFace( gl.BACK );
         gl.enable( gl.CULL_FACE );
-        
+        gl.frontFace( gl.CW );
         gl.useProgram( this.program );
         gl.bindBuffer( gl.ARRAY_BUFFER, this.verts );
         gl.bindBuffer( gl.ELEMENT_ARRAY_BUFFER, this.indis );
@@ -89,12 +89,12 @@ class Mesh {
         );
 
 
-        set_vertex_attrib_to_buffer( 
+        /*set_vertex_attrib_to_buffer( 
             gl, this.program, 
             "color", 
             this.verts, 4, 
             gl.FLOAT, false, VERTEX_STRIDE, 12
-        );
+        );*/
 
         gl.drawElements( gl.TRIANGLES, this.n_indis, gl.UNSIGNED_SHORT, 0 );
     }
