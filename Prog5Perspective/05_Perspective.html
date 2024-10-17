@@ -85,7 +85,7 @@
             gl.clear( gl.COLOR_BUFFER_BIT );
 
             //load mesh from obj file
-            Mesh.from_obj_file(gl,'cube.obj',shader_program,function(meshToLoad){
+            Mesh.from_obj_file(gl,'cow.obj',shader_program,function(meshToLoad){
                 loadedMesh = meshToLoad;
                 console.log('Mesh loaded:',loadedMesh);
             });
@@ -131,7 +131,7 @@
                     modelyz=Mat4.rotation_yz(yz_amnt);
 
                     //scalar and translation matrices
-                    let modelScale=Mat4.scale(0.75,0.75,0.75);
+                    let modelScale=Mat4.scale(0.1,0.1,0.1);
                     let modelTrans=Mat4.translation(0,0,1);
 
                     //perspective shenaniganery
