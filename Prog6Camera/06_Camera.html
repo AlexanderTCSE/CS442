@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Mesh Rotator v2.0</title>
+        <title>Mesh Viewer v1.0</title>
         <style>
             #the-canvas { border: 1px solid darkblue; }
         </style>
@@ -104,6 +104,11 @@
                 let right = top * aspect;
                 let left = -right;
                 return Mat4.frustum(left,right,bottom,top,near,far);
+            }
+
+            //update position of objects
+            function update(){
+
             }
 
             //render everything
