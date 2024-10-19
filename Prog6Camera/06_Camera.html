@@ -12,9 +12,16 @@
 		<script src="matrix.js"></script>
 		<script src="vector.js"></script>
         <script src="mesh.js"></script>
+        <script src="keys.js"></script>
         <script src = "lib.js"></script>
         
         <script>
+            //keylog
+            const keys = Keys.start_listening();
+            //game update intervals
+            const DESIRED_TICK_RATE = 60;
+            const DESIRED_MSPT = 1000/DESIRED_TICK_RATE;
+
             let canvas = document.getElementById( 'the-canvas' );
             let gl = canvas.getContext( 'webgl2' );
 
@@ -26,6 +33,11 @@
 			let xz_amnt=0.0;
 			let yz_amnt=0.0;
 			let last_update=performance.now();
+
+            let rot_xy = Mat4.identity();
+            let rot_xz = Mat4.identity();
+            let rot_yz = Mat4.identity();
+            let translationMatrix = Mat4.identity();
 
 			let modelxy=Mat4.rotation_xy(XY_ROT_SPEED);
             let modelxz=Mat4.rotation_xz(XZ_ROT_SPEED);
@@ -85,7 +97,7 @@
             gl.clear( gl.COLOR_BUFFER_BIT );
 
             //load mesh from obj file
-            Mesh.from_obj_file(gl,'cow.obj',shader_program,function(meshToLoad){
+            Mesh.from_obj_file(gl,'cube.obj',shader_program,function(meshToLoad){
                 loadedMesh = meshToLoad;
                 console.log('Mesh loaded:',loadedMesh);
             });
@@ -105,64 +117,163 @@
                 let left = -right;
                 return Mat4.frustum(left,right,bottom,top,near,far);
             }
-
+            
             //update position of objects
             function update(){
+                const pressedKeys = keys.keys_down_list();
 
+                //position vectors
+                let forward = new Vec4(0, 0, 1, 1);
+                let up = new Vec4(0, 1, 0, 1);
+
+                //update position based on camera position
+                forward = rot_yz.transform_vec(forward);
+                forward = rot_xz.transform_vec(forward);
+                forward = forward.norm();
+
+                let right = up.cross(forward).norm();
+                up = forward.cross(right).norm();
+
+                //Forward
+                if(keys.is_key_down('KeyW')){
+                    console.log('[W] Forward');
+                    translationMatrix = translationMatrix.mul(Mat4.translation(forward.x * 0.01, forward.y * 0.01, forward.z * 0.01));
+                }
+                
+                //Backward
+                if(keys.is_key_down('KeyS')){
+                    console.log('[S] Backward');
+                    translationMatrix = translationMatrix.mul(Mat4.translation(-forward.x * 0.01, -forward.y * 0.01, -forward.z * 0.01));
+                }
+                
+                //Strafe left
+                if(keys.is_key_down('KeyA')){
+                    console.log('[A] Left');
+                    translationMatrix = translationMatrix.mul(Mat4.translation(-right.x * 0.01, -right.y * 0.01, -right.z * 0.01));
+                }
+
+                //Strafe right
+                if(keys.is_key_down('KeyD')){
+                    console.log('[D] Right');
+                    translationMatrix = translationMatrix.mul(Mat4.translation(right.x * 0.01, right.y * 0.01, right.z * 0.01));
+                }
+
+                //Ascend
+                if(keys.is_key_down('Space')){
+                    console.log('[Space] Up');
+                    translationMatrix = translationMatrix.mul(Mat4.translation(-up.x * 0.01, -up.y * 0.01, -up.z * 0.01));
+                }
+
+                //Descend
+                if(keys.is_key_down('KeyC')){
+                    console.log('[C] Down');
+                    translationMatrix = translationMatrix.mul(Mat4.translation(up.x * 0.01, up.y * 0.01, up.z * 0.01));
+                }
+
+                //Roll left
+                if(keys.is_key_down('KeyQ')){
+                    console.log('[Q] Roll left');
+                    rot_xy = rot_xy.mul(Mat4.rotation_xy(-0.005));
+                }
+
+                //Roll right
+                if(keys.is_key_down('KeyE')){
+                    console.log('[E] Roll right');
+                    rot_xy = rot_xy.mul(Mat4.rotation_xy(0.005));
+                }
+
+                //Look left
+                if(keys.is_key_down('ArrowLeft')){
+                    console.log('[<-] Look left');
+                    rot_xz = rot_xz.mul(Mat4.rotation_xz(-0.005));
+                }
+
+                //Look right
+                if(keys.is_key_down('ArrowRight')){
+                    console.log('[->] Look right');
+                    rot_xz = rot_xz.mul(Mat4.rotation_xz(0.005));
+                }
+
+                //Look up
+                if(keys.is_key_down('ArrowUp')){
+                    console.log('[^] Look up');
+                    rot_xz = rot_xz.mul(Mat4.rotation_yz(-0.005));
+                }
+
+                //Look down
+                if(keys.is_key_down('ArrowDown')){
+                    console.log('[\\/] Look down');
+                    rot_xz = rot_xz.mul(Mat4.rotation_yz(0.005));
+                }
             }
+            setInterval(update, DESIRED_MSPT);
 
             //render everything
 			function render(now){
-				requestAnimationFrame(render);
-				let time_delta=(now-last_update)/1000;
-				last_update=performance.now();
-				gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                //request frame
+                requestAnimationFrame(render);
 
+                //update timing
+                let time_delta = (now-last_update)/1000;
+                last_update=performance.now();
+
+                //clear color and depth buffers, update matrices
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+                //model scalar and translation matrices
+                let modelScale = Mat4.scale(1, 1, 1);
+                let modelTrans = Mat4.translation(0, 0, 1);
+                let modelMatrix = Mat4.translation(0, 0, 1.5);
+
+                //rotation matrices
+                //rotate model about the xy plane
+                xy_amnt += XY_ROT_SPEED * time_delta;
+                xy_amnt %= 1.0;
+                modelxy=Mat4.rotation_xy(xy_amnt);
+
+                //rotate model about the xz plane
+                xz_amnt += XZ_ROT_SPEED * time_delta;
+                xz_amnt %= 1.0;
+                modelxz=Mat4.rotation_xz(xz_amnt);
+
+                //rotate model about the yz plane
+                yz_amnt += YZ_ROT_SPEED * time_delta;
+                yz_amnt %= 1.0;
+                modelyz=Mat4.rotation_yz(yz_amnt);
+
+                //perspective setup
+                let fov_x = 0.25 * 2 * Math.PI;
+                let aspect_ratio = canvas.width/canvas.height;
+                let near_plane = 0.25;
+                let far_plane = 3.0;
+                let projMatrix = perspective(fov_x, aspect_ratio, near_plane, far_plane);
+
+                //the final model we actually render
+                model=projMatrix
+                    .mul(modelTrans)    //translation matrix
+                    //.mul(modelxy)       //xy rotation
+                    //.mul(modelyz)       //yz rotation
+                    //.mul(modelxz)       //xz rotation
+                    .mul(modelScale)    //scalar matrix
+                ;
+
+                //camera and view matrices
+                let cameraMatrix = translationMatrix
+                                    .mul(rot_yz) //Yaw
+                                    .mul(rot_xz) //Pitch
+                                    .mul(rot_xy) //Roll
+                ;
+                let viewMatrix = cameraMatrix.inverse();
+                let finalMatrix = projMatrix.mul(viewMatrix).mul(modelScale);
+
+                set_uniform_matrix4(gl, shader_program, "modelview", finalMatrix.data);
+
+                //if a mesh is loaded, render it
                 if(loadedMesh){
-
-                    //rotate model about the xy plane
-                    xy_amnt += XY_ROT_SPEED * time_delta;
-                    xy_amnt %= 1.0;
-                    modelxy=Mat4.rotation_xy(xy_amnt);
-
-                    //rotate model about the xz plane
-                    xz_amnt += XZ_ROT_SPEED * time_delta;
-                    xz_amnt %= 1.0;
-                    modelxz=Mat4.rotation_xz(xz_amnt);
-
-                    //rotate model about the yz plane
-                    yz_amnt += YZ_ROT_SPEED * time_delta;
-                    yz_amnt %= 1.0;
-                    modelyz=Mat4.rotation_yz(yz_amnt);
-
-                    //scalar and translation matrices
-                    let modelScale=Mat4.scale(0.1,0.1,0.1);
-                    let modelTrans=Mat4.translation(0,0,1);
-
-                    //perspective shenaniganery
-                    let fov_x = 0.25 * 2 * Math.PI;
-                    let aspect_ratio = canvas.width/canvas.height;
-                    let near_plane = 0.25;
-                    let far_plane = 3.0;
-                    let projMatrix = perspective(fov_x, aspect_ratio, near_plane, far_plane);
-
-                    //the final model we actually render
-                    model=projMatrix
-                        .mul(modelTrans)    //translation matrix
-                        //.mul(modelxy)       //xy rotation
-                        //.mul(modelyz)       //yz rotation
-                        .mul(modelxz)       //xz rotation
-                        .mul(modelScale);   //scalar matrix
-
-                    //pass modelview to shader
-                    set_uniform_matrix4(gl,shader_program,"modelview",model.data);
-
-                    //Render The Cube
-                    loadedMesh.render(gl);
+                    loadedMesh.render(gl);                   
                 }
 			}
 			requestAnimationFrame(render);
-            //gl.deleteBuffer( loadedMesh );
         </script>
     </body>
 </html>
