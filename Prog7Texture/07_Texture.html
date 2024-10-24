@@ -45,7 +45,7 @@
             let modelyz=Mat4.rotation_yz(YZ_ROT_SPEED);
             let model=Mat4;
 
-            let loadedMesh;
+
             
             let vertex_source = 
             `   #version 300 es
@@ -97,11 +97,15 @@
             gl.enable( gl.DEPTH_TEST );
             gl.clear( gl.COLOR_BUFFER_BIT );
 
+            //This line uses Grant's cube mesh
+            let loadedMesh = Mesh.box(gl,shader_program,1,1,1);
+
             //load mesh from obj file
-            Mesh.from_obj_file(gl,'cube.obj',shader_program,function(meshToLoad){
+            /*Mesh.from_obj_file(gl,'cube.obj',shader_program,function(meshToLoad){
                 loadedMesh = meshToLoad;
                 console.log('Mesh loaded:',loadedMesh);
             });
+            */
             
 			function set_uniform_matrix4(gl,program,name,data){
 				const loc=gl.getUniformLocation(program,name);
@@ -119,7 +123,7 @@
                 return Mat4.frustum(left,right,bottom,top,near,far);
             }
             
-            //update position of objects
+            //update camera, huge block of input
             function update(){
                 const pressedKeys = keys.keys_down_list();
 
@@ -208,6 +212,31 @@
                 }
             }
             setInterval(update, DESIRED_MSPT);
+
+            //generate XOR texture
+            /*function xor_texture(){
+                let data = new Array(256*256*4);
+                for(let row=0; row<width; row++){
+                    for(let col=0; col<width; col++){
+                        let pix = (row*width+col)*4;
+                        data[pix]=data[pix+1]=data[pix+2]=row^col;  //set R(p), G(p+1), and B(p+2)
+                        data[pix+3]=255;    //set alpha to 255(opaque)
+                    }
+                }
+                return new Uint8Array(data);
+            }
+            */
+
+            //create and bind texture, then load pixels
+            /*let tex=gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texImage2D(
+                gl.TEXTURE_2D,0,gl.RGBA,
+                256,256,0,
+                gl.RGBA, gl.UNSIGNED_BYTE,
+                xor_texture()
+            );
+            */
 
             //render everything
 			function render(now){

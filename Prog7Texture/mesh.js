@@ -74,7 +74,7 @@ class Mesh {
      * @param {WebGLRenderingContext} gl 
      */
     render( gl ) {
-        gl.frontFace( gl.CW );
+        //gl.frontFace( gl.CCW ); //Adjust winding order
         gl.cullFace( gl.BACK );
         gl.enable( gl.CULL_FACE );
         
