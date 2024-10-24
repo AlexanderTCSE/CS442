@@ -33,15 +33,15 @@ class Mesh {
         let hdepth = depth / 2.0;
 
         let verts = [
-            hwidth, -hheight, -hdepth,      1.0, 0.0, 0.0, 1.0,
-            -hwidth, -hheight, -hdepth,     0.0, 1.0, 0.0, 1.0,
-            -hwidth, hheight, -hdepth,      0.0, 0.0, 1.0, 1.0,
-            hwidth, hheight, -hdepth,       1.0, 1.0, 0.0, 1.0,
+            hwidth, -hheight, -hdepth,      1.0, 0.0, 0.0, 1.0,     1.0, 0.0,
+            -hwidth, -hheight, -hdepth,     0.0, 1.0, 0.0, 1.0,     0.0, 0.0,
+            -hwidth, hheight, -hdepth,      0.0, 0.0, 1.0, 1.0,     0.0, 1.0,
+            hwidth, hheight, -hdepth,       1.0, 1.0, 0.0, 1.0,     1.0, 1.0,
 
-            hwidth, -hheight, hdepth,       1.0, 0.0, 1.0, 1.0,
-            -hwidth, -hheight, hdepth,      0.0, 1.0, 1.0, 1.0,
-            -hwidth, hheight, hdepth,       0.5, 0.5, 1.0, 1.0,
-            hwidth, hheight, hdepth,        1.0, 1.0, 0.5, 1.0,
+            hwidth, -hheight, hdepth,       1.0, 0.0, 1.0, 1.0,     1.0, 0.0,
+            -hwidth, -hheight, hdepth,      0.0, 1.0, 1.0, 1.0,     0.0, 0.0,
+            -hwidth, hheight, hdepth,       0.5, 0.5, 1.0, 1.0,     0.0, 1.0,
+            hwidth, hheight, hdepth,        1.0, 1.0, 0.5, 1.0,     1.0, 1.0
         ];
 
         let indis = [
@@ -94,6 +94,13 @@ class Mesh {
             "color", 
             this.verts, 4, 
             gl.FLOAT, false, VERTEX_STRIDE, 12
+        );
+
+        set_vertex_attrib_to_buffer( 
+            gl, this.program, 
+            "uv", 
+            this.verts, 2, 
+            gl.FLOAT, false, VERTEX_STRIDE, 28
         );
 
         gl.drawElements( gl.TRIANGLES, this.n_indis, gl.UNSIGNED_SHORT, 0 );

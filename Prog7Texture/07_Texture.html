@@ -44,8 +44,6 @@
             let modelxz=Mat4.rotation_xz(XZ_ROT_SPEED);
             let modelyz=Mat4.rotation_yz(YZ_ROT_SPEED);
             let model=Mat4;
-
-
             
             let vertex_source = 
             `   #version 300 es
@@ -55,11 +53,14 @@
 
                 in vec3 coordinates;	//input XY coords from verts
 				in vec4 color;			//input color from verts
-				out vec4 fragColor;		//output fragColor to fragment shader
-				
+                in vec2 uv;
+				out vec4 v_color;		//output v_color to fragment shader
+				out vec2 v_uv;
+
                 void main( void ) {
                     gl_Position = modelview*vec4( coordinates, 1.0 );
-					fragColor=color;
+					v_color=color;
+                    v_uv=uv;
                 }
             `;
 
@@ -67,18 +68,19 @@
             gl.shaderSource( vert_shader, vertex_source );
             gl.compileShader( vert_shader );
 
-
             let fragment_source = 
             `   #version 300 es
                 precision mediump float;
 
                 in vec4 v_color;
+                in vec2 v_uv;
 
                 out vec4 f_color;
 
+                uniform sampler2D tex_0;
+
                 void main( void ) {
-                    /* we can test depth values with this.*/
-                    f_color = vec4(vec3(gl_FragCoord.z), 1.0); 
+                    f_color = texture(tex_0,v_uv); 
                 }
             `;
 
@@ -213,8 +215,12 @@
             }
             setInterval(update, DESIRED_MSPT);
 
+            let vertex_buf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buf);
+
             //generate XOR texture
-            /*function xor_texture(){
+            function xor_texture(){
+                const width=256;
                 let data = new Array(256*256*4);
                 for(let row=0; row<width; row++){
                     for(let col=0; col<width; col++){
@@ -225,10 +231,9 @@
                 }
                 return new Uint8Array(data);
             }
-            */
 
             //create and bind texture, then load pixels
-            /*let tex=gl.createTexture();
+            let tex=gl.createTexture();
             gl.bindTexture(gl.TEXTURE_2D, tex);
             gl.texImage2D(
                 gl.TEXTURE_2D,0,gl.RGBA,
@@ -236,7 +241,16 @@
                 gl.RGBA, gl.UNSIGNED_BYTE,
                 xor_texture()
             );
-            */
+
+            //Following the slides here
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buf);
+            const attr_loc = gl.getAttribLocation(shader_program,'uv');
+            gl.enableVertexAttribArray(attr_loc);
+            gl.vertexAttribPointer(attr_loc, 2, gl.FLOAT, false, 36, 28);
+            const sampler_loc = gl.getUniformLocation(shader_program, 'tex_0');
+            gl.uniform1i(sampler_loc,0);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D,tex);
 
             //render everything
 			function render(now){
