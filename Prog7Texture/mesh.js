@@ -1,5 +1,5 @@
 
-const VERTEX_STRIDE = 28;
+const VERTEX_STRIDE = 36;
 
 class Mesh {
     /** 
@@ -75,6 +75,7 @@ class Mesh {
      */
     render( gl ) {
         //gl.frontFace( gl.CCW ); //Adjust winding order
+        console.log("Rendering..");
         gl.cullFace( gl.BACK );
         gl.enable( gl.CULL_FACE );
         
@@ -89,12 +90,14 @@ class Mesh {
             gl.FLOAT, false, VERTEX_STRIDE, 0 
         );
 
+        /*
         set_vertex_attrib_to_buffer( 
             gl, this.program, 
             "color", 
             this.verts, 4, 
             gl.FLOAT, false, VERTEX_STRIDE, 12
         );
+        */
 
         set_vertex_attrib_to_buffer( 
             gl, this.program, 
